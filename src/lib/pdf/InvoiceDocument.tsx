@@ -104,9 +104,13 @@ export function InvoiceDocument({ invoice }: { invoice: Invoice }) {
     taxPercent: invoice.taxPercent,
   });
   const money = (cents: number) => formatMoney(cents, currency);
+  // SARS: a VAT vendor issues a "Tax Invoice"; a non-vendor issues an "Invoice".
+  // The supplier VAT number is only present on the invoice when VAT-registered.
+  const isTaxInvoice = Boolean(from.taxId);
+  const documentTitle = isTaxInvoice ? "TAX INVOICE" : "INVOICE";
 
   return (
-    <Document title={`Invoice ${invoice.number}`}>
+    <Document title={`${documentTitle} ${invoice.number}`}>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerRow}>
@@ -119,7 +123,7 @@ export function InvoiceDocument({ invoice }: { invoice: Invoice }) {
             {from.taxId ? <Text style={styles.muted}>VAT Reg No: {from.taxId}</Text> : null}
           </View>
           <View style={styles.metaRight}>
-            <Text style={styles.title}>INVOICE</Text>
+            <Text style={styles.title}>{documentTitle}</Text>
             <Text style={styles.bold}>{invoice.number}</Text>
             <Text style={styles.muted}>Issued: {invoice.issueDate}</Text>
             <Text style={styles.muted}>Due: {invoice.dueDate}</Text>
