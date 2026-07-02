@@ -34,7 +34,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject
+          attributes on <body> before hydration, which would otherwise trip a
+          hydration-mismatch warning. This only affects <body>'s own attributes. */}
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100"
+      >
         <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           <nav className="mx-auto flex max-w-5xl items-center gap-6 px-6 py-4">
             <Link href="/" className="font-semibold tracking-tight">
