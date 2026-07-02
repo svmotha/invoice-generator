@@ -1,0 +1,115 @@
+import { z } from "zod";
+
+/**
+ * Shared data model for the invoice generator. These Zod schemas are the single
+ * source of truth: API routes validate against them and the inferred types flow
+ * through the UI and storage layers.
+ *
+ * All money values are integer minor units (cents). See lib/money.ts.
+ */
+
+export const currencyCodeSchema = z
+  .string()
+  .length(3)
+  .regex(/^[A-Z]{3}$/, "Use a 3-letter ISO currency code, e.g. USD");
+
+/** Payment terms drive the due-date calculation from the issue date. */
+export const paymentTermsSchema = z.enum(["due_on_receipt", "net_7", "net_15", "net_30", "net_60"]);
+export type PaymentTerms = z.infer<typeof paymentTermsSchema>;
+
+/** Number of days each term adds to the issue date. */
+export const TERM_DAYS: Record<PaymentTerms, number> = {
+  due_on_receipt: 0,
+  net_7: 7,
+  net_15: 15,
+  net_30: 30,
+  net_60: 60,
+};
+
+export const invoiceStatusSchema = z.enum(["draft", "sent", "paid", "overdue"]);
+export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+
+/** An address block used for both the business and the client. */
+export const partySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email().optional().or(z.literal("")),
+  addressLine1: z.string().optional().default(""),
+  addressLine2: z.string().optional().default(""),
+  city: z.string().optional().default(""),
+  region: z.string().optional().default(""),
+  postalCode: z.string().optional().default(""),
+  country: z.string().optional().default(""),
+  taxId: z.string().optional().default(""),
+});
+export type Party = z.infer<typeof partySchema>;
+
+export const clientSchema = partySchema.extend({
+  id: z.string(),
+  createdAt: z.string(),
+});
+export type Client = z.infer<typeof clientSchema>;
+
+export const lineItemSchema = z.object({
+  id: z.string(),
+  description: z.string().min(1, "Description is required"),
+  quantity: z.number().positive("Quantity must be greater than 0"),
+  /** Unit price in cents. */
+  unitPriceCents: z.number().int().nonnegative(),
+});
+export type LineItem = z.infer<typeof lineItemSchema>;
+
+/** The business's own profile and defaults, stored in settings.json. */
+export const settingsSchema = z.object({
+  business: partySchema,
+  /** Data URL or public path for the logo; optional. */
+  logo: z.string().optional().default(""),
+  defaultCurrency: currencyCodeSchema.default("USD"),
+  defaultTerms: paymentTermsSchema.default("net_30"),
+  defaultTaxPercent: z.number().min(0).max(100).default(0),
+  defaultNotes: z.string().optional().default(""),
+  /** Next auto-incrementing invoice number. */
+  nextInvoiceSeq: z.number().int().positive().default(1),
+  invoicePrefix: z.string().default("INV-"),
+});
+export type Settings = z.infer<typeof settingsSchema>;
+
+export const invoiceSchema = z.object({
+  id: z.string(),
+  /** Human-facing number, e.g. "INV-0001". */
+  number: z.string().min(1),
+  status: invoiceStatusSchema.default("draft"),
+  currency: currencyCodeSchema.default("USD"),
+
+  from: partySchema,
+  to: partySchema,
+
+  issueDate: z.string(), // ISO date (YYYY-MM-DD)
+  dueDate: z.string(), // ISO date (YYYY-MM-DD)
+  terms: paymentTermsSchema.default("net_30"),
+
+  items: z.array(lineItemSchema).min(1, "Add at least one line item"),
+  discountPercent: z.number().min(0).max(100).default(0),
+  taxPercent: z.number().min(0).max(100).default(0),
+
+  notes: z.string().optional().default(""),
+
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type Invoice = z.infer<typeof invoiceSchema>;
+
+/** Payload accepted when creating/updating an invoice (server fills the rest). */
+export const invoiceInputSchema = invoiceSchema.omit({
+  id: true,
+  number: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InvoiceInput = z.infer<typeof invoiceInputSchema>;
+
+/** Compute an ISO due date from an ISO issue date and payment terms. */
+export function dueDateFromTerms(issueDate: string, terms: PaymentTerms): string {
+  const d = new Date(`${issueDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + TERM_DAYS[terms]);
+  return d.toISOString().slice(0, 10);
+}
