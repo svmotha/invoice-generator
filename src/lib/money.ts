@@ -64,8 +64,11 @@ export function computeTotals({
   return { subtotalCents, discountCents, taxableCents, taxCents, totalCents };
 }
 
-/** Format integer cents as a currency string using the given ISO currency code. */
-export function formatMoney(cents: number, currency = "USD", locale = "en-US"): string {
+/**
+ * Format integer cents as a currency string. Defaults to ZAR and the en-ZA
+ * locale so amounts render with the "R" symbol (e.g. "R 1 500,00").
+ */
+export function formatMoney(cents: number, currency = "ZAR", locale = "en-ZA"): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
