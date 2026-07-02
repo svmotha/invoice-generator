@@ -1,10 +1,19 @@
 import Link from "next/link";
-import { getSettings } from "@/lib/storage";
+import { getSettings, listInvoices } from "@/lib/storage";
+import { computeTotals, formatMoney } from "@/lib/money";
+import type { InvoiceStatus } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_STYLES: Record<InvoiceStatus, string> = {
+  draft: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
+  sent: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  paid: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  overdue: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+};
+
 export default async function HomePage() {
-  const settings = await getSettings();
+  const [settings, invoices] = await Promise.all([getSettings(), listInvoices()]);
   const needsSetup = !settings.business.name;
 
   return (
@@ -29,9 +38,57 @@ export default async function HomePage() {
         </div>
       ) : null}
 
-      <div className="mt-8 rounded-lg border border-dashed border-neutral-300 p-10 text-center text-sm text-neutral-500 dark:border-neutral-700">
-        No invoices yet. The invoice builder lands in the next step.
-      </div>
+      {invoices.length === 0 ? (
+        <div className="mt-8 rounded-lg border border-dashed border-neutral-300 p-10 text-center text-sm text-neutral-500 dark:border-neutral-700">
+          No invoices yet.{" "}
+          <Link href="/invoices/new" className="font-medium underline">
+            Create your first one
+          </Link>
+          .
+        </div>
+      ) : (
+        <div className="mt-8 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900">
+              <tr>
+                <th className="px-4 py-3 font-medium">Number</th>
+                <th className="px-4 py-3 font-medium">Client</th>
+                <th className="px-4 py-3 font-medium">Issued</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 text-right font-medium">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {invoices.map((inv) => {
+                const { totalCents } = computeTotals({
+                  items: inv.items,
+                  discountPercent: inv.discountPercent,
+                  taxPercent: inv.taxPercent,
+                });
+                return (
+                  <tr key={inv.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                    <td className="px-4 py-3 font-medium">
+                      <Link href={`/invoices/${inv.id}`} className="hover:underline">
+                        {inv.number}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{inv.to.name}</td>
+                    <td className="px-4 py-3 text-neutral-500">{inv.issueDate}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[inv.status]}`}>
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {formatMoney(totalCents, inv.currency)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
