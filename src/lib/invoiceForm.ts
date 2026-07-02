@@ -44,10 +44,17 @@ export function emptyItem(): BuilderItem {
   return { id: crypto.randomUUID(), description: "", quantity: 1, unitPrice: 0 };
 }
 
-/** Convert validated builder values + the business "from" party into the stored input shape. */
-export function toInvoiceInput(values: BuilderValues, from: Party): InvoiceInput {
+/**
+ * Convert validated builder values + the business "from" party into the stored
+ * input shape. Pass the existing status when editing so it is preserved.
+ */
+export function toInvoiceInput(
+  values: BuilderValues,
+  from: Party,
+  status: InvoiceInput["status"] = "draft"
+): InvoiceInput {
   return {
-    status: "draft",
+    status,
     currency: values.currency,
     from,
     to: values.to,

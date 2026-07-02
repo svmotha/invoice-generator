@@ -11,7 +11,13 @@ import {
   type BuilderInput,
   type BuilderValues,
 } from "@/lib/invoiceForm";
-import { dueDateFromTerms, type Party, type PaymentTerms } from "@/lib/schema";
+import {
+  dueDateFromTerms,
+  type Client,
+  type InvoiceStatus,
+  type Party,
+  type PaymentTerms,
+} from "@/lib/schema";
 import { computeTotals, formatMoney, toCents } from "@/lib/money";
 import { TextField } from "@/components/ui/TextField";
 
@@ -34,11 +40,24 @@ export interface InvoiceFormProps {
   /** Business "from" party, snapshotted onto the invoice at save time. */
   from: Party;
   defaults: BuilderValues;
+  /** Saved clients offered in the "Bill to" picker. */
+  clients?: Client[];
+  /** When set, the form edits this invoice (PUT) instead of creating one. */
+  invoiceId?: string;
+  /** Existing status, preserved when editing. */
+  status?: InvoiceStatus;
 }
 
-export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
+export function InvoiceForm({
+  from,
+  defaults,
+  clients = [],
+  invoiceId,
+  status = "draft",
+}: InvoiceFormProps) {
   const router = useRouter();
   const [submit, setSubmit] = useState<SubmitState>({ status: "idle" });
+  const isEdit = Boolean(invoiceId);
 
   const {
     register,
@@ -90,20 +109,36 @@ export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
   async function onSubmit(values: BuilderValues) {
     setSubmit({ status: "saving" });
     try {
-      const res = await fetch("/api/invoices", {
-        method: "POST",
+      const res = await fetch(isEdit ? `/api/invoices/${invoiceId}` : "/api/invoices", {
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toInvoiceInput(values, from)),
+        body: JSON.stringify(toInvoiceInput(values, from, status)),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? `Request failed (${res.status})`);
       }
-      router.push("/");
+      const saved = await res.json();
+      router.push(isEdit ? `/invoices/${invoiceId}` : `/invoices/${saved.id}`);
       router.refresh();
     } catch (err) {
       setSubmit({ status: "error", message: (err as Error).message });
     }
+  }
+
+  /** Fill the "Bill to" fields from a saved client. */
+  function applyClient(clientId: string) {
+    const client = clients.find((c) => c.id === clientId);
+    if (!client) return;
+    setValue("to.name", client.name);
+    setValue("to.email", client.email ?? "");
+    setValue("to.addressLine1", client.addressLine1 ?? "");
+    setValue("to.addressLine2", client.addressLine2 ?? "");
+    setValue("to.city", client.city ?? "");
+    setValue("to.region", client.region ?? "");
+    setValue("to.postalCode", client.postalCode ?? "");
+    setValue("to.country", client.country ?? "");
+    setValue("to.taxId", client.taxId ?? "");
   }
 
   return (
@@ -111,7 +146,26 @@ export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
       <div className="space-y-8">
         {/* Bill to */}
         <section>
-          <h2 className="text-lg font-semibold">Bill to</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Bill to</h2>
+            {clients.length > 0 ? (
+              <select
+                aria-label="Use a saved client"
+                defaultValue=""
+                onChange={(e) => applyClient(e.target.value)}
+                className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              >
+                <option value="" disabled>
+                  Use a saved client…
+                </option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+          </div>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <TextField label="Client name" error={errors.to?.name?.message} {...register("to.name")} />
             <TextField label="Email" type="email" {...register("to.email")} />
@@ -262,7 +316,11 @@ export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
           disabled={submit.status === "saving"}
           className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
-          {submit.status === "saving" ? "Saving…" : "Create invoice"}
+          {submit.status === "saving"
+            ? "Saving…"
+            : isEdit
+            ? "Save changes"
+            : "Create invoice"}
         </button>
         {submit.message ? <p className="text-sm text-red-600">{submit.message}</p> : null}
       </aside>

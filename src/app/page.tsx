@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSettings, listInvoices } from "@/lib/storage";
 import { computeTotals, formatMoney } from "@/lib/money";
-import type { InvoiceStatus } from "@/lib/schema";
+import { effectiveStatus, type InvoiceStatus } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -75,9 +75,14 @@ export default async function HomePage() {
                     <td className="px-4 py-3">{inv.to.name}</td>
                     <td className="px-4 py-3 text-neutral-500">{inv.issueDate}</td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[inv.status]}`}>
-                        {inv.status}
-                      </span>
+                      {(() => {
+                        const s = effectiveStatus(inv);
+                        return (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[s]}`}>
+                            {s}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {formatMoney(totalCents, inv.currency)}

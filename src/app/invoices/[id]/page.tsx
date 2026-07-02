@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getInvoice } from "@/lib/storage";
 import { computeTotals, formatMoney } from "@/lib/money";
-import type { InvoiceStatus } from "@/lib/schema";
+import { effectiveStatus, type InvoiceStatus } from "@/lib/schema";
+import { InvoiceActions } from "@/components/InvoiceActions";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function InvoiceViewPage({ params }: Params) {
     discountPercent: invoice.discountPercent,
     taxPercent: invoice.taxPercent,
   });
+  const displayStatus = effectiveStatus(invoice);
   const pdfUrl = `/api/invoices/${invoice.id}/pdf`;
 
   return (
@@ -35,8 +37,8 @@ export default async function InvoiceViewPage({ params }: Params) {
             ← Invoices
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">{invoice.number}</h1>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[invoice.status]}`}>
-            {invoice.status}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[displayStatus]}`}>
+            {displayStatus}
           </span>
         </div>
         <div className="flex items-center gap-3 text-sm">
@@ -51,6 +53,10 @@ export default async function InvoiceViewPage({ params }: Params) {
             Download PDF
           </a>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <InvoiceActions invoice={invoice} />
       </div>
 
       <div className="mt-6 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">

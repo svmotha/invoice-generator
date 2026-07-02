@@ -113,6 +113,18 @@ export const invoiceInputSchema = invoiceSchema.omit({
 });
 export type InvoiceInput = z.infer<typeof invoiceInputSchema>;
 
+/**
+ * Display status. "overdue" is derived, not stored: a sent invoice whose due
+ * date has passed shows as overdue without any background job.
+ */
+export function effectiveStatus(
+  invoice: Pick<Invoice, "status" | "dueDate">,
+  today = new Date().toISOString().slice(0, 10)
+): InvoiceStatus {
+  if (invoice.status === "sent" && invoice.dueDate < today) return "overdue";
+  return invoice.status;
+}
+
 /** Compute an ISO due date from an ISO issue date and payment terms. */
 export function dueDateFromTerms(issueDate: string, terms: PaymentTerms): string {
   const d = new Date(`${issueDate}T00:00:00Z`);
