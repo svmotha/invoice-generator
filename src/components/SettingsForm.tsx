@@ -30,11 +30,15 @@ export function SettingsForm({ initial }: { initial: Settings }) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<SettingsFormValues, unknown, Settings>({
     resolver: zodResolver(settingsSchema),
     defaultValues: initial,
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const vatRegistered = watch("vatRegistered");
 
   async function onSubmit(values: Settings) {
     setSave({ status: "saving" });
@@ -87,10 +91,6 @@ export function SettingsForm({ initial }: { initial: Settings }) {
           <TextField label="State / Region" {...register("business.region")} />
           <TextField label="Postal code" {...register("business.postalCode")} />
           <TextField label="Country" {...register("business.country")} />
-          <TextField
-            label="Tax ID / VAT"
-            {...register("business.taxId")}
-          />
         </div>
       </section>
 
@@ -102,7 +102,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
             label="Default currency (ISO code)"
-            placeholder="USD"
+            placeholder="ZAR"
             maxLength={3}
             className="uppercase"
             error={errors.defaultCurrency?.message}
@@ -121,15 +121,6 @@ export function SettingsForm({ initial }: { initial: Settings }) {
             </select>
           </label>
           <TextField
-            label="Default tax rate (%)"
-            type="number"
-            step="0.01"
-            min={0}
-            max={100}
-            error={errors.defaultTaxPercent?.message}
-            {...register("defaultTaxPercent", { valueAsNumber: true })}
-          />
-          <TextField
             label="Invoice number prefix"
             placeholder="INV-"
             error={errors.invoicePrefix?.message}
@@ -143,6 +134,39 @@ export function SettingsForm({ initial }: { initial: Settings }) {
             error={errors.nextInvoiceSeq?.message}
             {...register("nextInvoiceSeq", { valueAsNumber: true })}
           />
+        </div>
+
+        {/* VAT */}
+        <div className="mt-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" className="h-4 w-4" {...register("vatRegistered")} />
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              My business is VAT registered
+            </span>
+          </label>
+          <p className="mt-1 text-xs text-neutral-500">
+            Only VAT-registered businesses may charge VAT. When off, new invoices default to 0% VAT.
+          </p>
+
+          {vatRegistered ? (
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField
+                label="VAT registration number"
+                placeholder="4xxxxxxxxx"
+                error={errors.business?.taxId?.message}
+                {...register("business.taxId")}
+              />
+              <TextField
+                label="Default VAT rate (%)"
+                type="number"
+                step="0.01"
+                min={0}
+                max={100}
+                error={errors.defaultTaxPercent?.message}
+                {...register("defaultTaxPercent", { valueAsNumber: true })}
+              />
+            </div>
+          ) : null}
         </div>
         <label className="mt-4 block">
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">

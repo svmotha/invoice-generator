@@ -63,9 +63,15 @@ export const settingsSchema = z.object({
   business: partySchema,
   /** Data URL or public path for the logo; optional. */
   logo: z.string().optional().default(""),
-  defaultCurrency: currencyCodeSchema.default("USD"),
+  defaultCurrency: currencyCodeSchema.default("ZAR"),
   defaultTerms: paymentTermsSchema.default("net_30"),
-  defaultTaxPercent: z.number().min(0).max(100).default(0),
+  /**
+   * Whether the business is VAT-registered. A business that is not registered
+   * cannot charge VAT, so new invoices default their tax to 0% when this is off.
+   */
+  vatRegistered: z.boolean().default(true),
+  /** Standard VAT rate applied on new invoices when VAT-registered (SA VAT is 15%). */
+  defaultTaxPercent: z.number().min(0).max(100).default(15),
   defaultNotes: z.string().optional().default(""),
   /** Next auto-incrementing invoice number. */
   nextInvoiceSeq: z.number().int().positive().default(1),
@@ -78,7 +84,7 @@ export const invoiceSchema = z.object({
   /** Human-facing number, e.g. "INV-0001". */
   number: z.string().min(1),
   status: invoiceStatusSchema.default("draft"),
-  currency: currencyCodeSchema.default("USD"),
+  currency: currencyCodeSchema.default("ZAR"),
 
   from: partySchema,
   to: partySchema,

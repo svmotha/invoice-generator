@@ -234,7 +234,7 @@ export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-neutral-500">Tax %</span>
+            <span className="text-xs font-medium text-neutral-500">VAT %</span>
             <input
               type="number" step="0.01" min={0} max={100}
               className={`mt-1 ${inputClass}`}
@@ -249,7 +249,7 @@ export function InvoiceForm({ from, defaults }: InvoiceFormProps) {
             <Row label={`Discount (${discountPercent || 0}%)`} value={`− ${money(totals.discountCents)}`} />
           ) : null}
           {totals.taxCents > 0 ? (
-            <Row label={`Tax (${taxPercent || 0}%)`} value={money(totals.taxCents)} />
+            <Row label={`VAT (${taxPercent || 0}%)`} value={money(totals.taxCents)} />
           ) : null}
           <div className="flex justify-between border-t border-neutral-200 pt-2 text-base font-semibold dark:border-neutral-800">
             <dt>Total</dt>

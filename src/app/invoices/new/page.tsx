@@ -28,7 +28,8 @@ export default async function NewInvoicePage() {
     dueDate: dueDateFromTerms(today, settings.defaultTerms),
     items: [emptyItem()],
     discountPercent: 0,
-    taxPercent: settings.defaultTaxPercent,
+    // A non-VAT-registered business cannot charge VAT, so default to 0%.
+    taxPercent: settings.vatRegistered ? settings.defaultTaxPercent : 0,
     notes: settings.defaultNotes ?? "",
   };
 
