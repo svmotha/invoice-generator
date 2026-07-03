@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { itemsToBuilder, type BuilderValues } from "@/lib/invoiceForm";
-import { getInvoice, listClients } from "@/lib/storage";
+import { businessFromSettings } from "@/lib/schema";
+import { getInvoice, getSettings, listClients } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,11 @@ type Params = { params: Promise<{ id: string }> };
 
 export default async function EditInvoicePage({ params }: Params) {
   const { id } = await params;
-  const [invoice, clients] = await Promise.all([getInvoice(id), listClients()]);
+  const [invoice, settings, clients] = await Promise.all([
+    getInvoice(id),
+    getSettings(),
+    listClients(),
+  ]);
   if (!invoice) notFound();
 
   const defaults: BuilderValues = {
@@ -37,8 +42,10 @@ export default async function EditInvoicePage({ params }: Params) {
         </Link>
       </div>
       <div className="mt-8">
+        {/* Refresh the supplier "from" from current settings so edits pick up
+            the latest business address, email, VAT number, etc. */}
         <InvoiceForm
-          from={invoice.from}
+          from={businessFromSettings(settings)}
           defaults={defaults}
           clients={clients}
           invoiceId={invoice.id}

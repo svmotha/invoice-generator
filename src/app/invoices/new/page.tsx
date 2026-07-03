@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { emptyItem, type BuilderValues } from "@/lib/invoiceForm";
-import { dueDateFromTerms } from "@/lib/schema";
+import { businessFromSettings, dueDateFromTerms } from "@/lib/schema";
 import { getSettings, listClients } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,7 @@ export default async function NewInvoicePage() {
         </Link>
       </div>
       <div className="mt-8">
-        <InvoiceForm from={settings.business} defaults={defaults} clients={clients} />
+        <InvoiceForm from={businessFromSettings(settings)} defaults={defaults} clients={clients} />
       </div>
     </div>
   );

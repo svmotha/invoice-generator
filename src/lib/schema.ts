@@ -101,6 +101,16 @@ export const settingsSchema = z.object({
 });
 export type Settings = z.infer<typeof settingsSchema>;
 
+/**
+ * The supplier "from" party derived from current settings. Omits the VAT
+ * registration number when the business is not VAT-registered, so invoices
+ * never display a VAT number (or read as a "tax invoice") in that case.
+ */
+export function businessFromSettings(settings: Settings): Party {
+  if (settings.vatRegistered) return settings.business;
+  return { ...settings.business, taxId: "" };
+}
+
 export const invoiceSchema = z.object({
   id: z.string(),
   /** Human-facing number, e.g. "INV-0001". */

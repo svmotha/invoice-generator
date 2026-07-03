@@ -89,6 +89,8 @@ export async function getSettings(): Promise<Settings> {
 
 export async function saveSettings(settings: Settings): Promise<Settings> {
   const parsed = settingsSchema.parse(settings);
+  // A non-VAT-registered business has no VAT number; don't persist a stale one.
+  if (!parsed.vatRegistered) parsed.business.taxId = "";
   await writeJson(SETTINGS_FILE, parsed);
   return parsed;
 }
