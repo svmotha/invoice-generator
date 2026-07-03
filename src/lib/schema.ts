@@ -13,9 +13,22 @@ export const currencyCodeSchema = z
   .length(3)
   .regex(/^[A-Z]{3}$/, "Use a 3-letter ISO currency code, e.g. USD");
 
-/** Payment terms drive the due-date calculation from the issue date. */
+/**
+ * Payment terms. The enum values are stable internal codes (kept as-is so
+ * existing stored invoices need no migration); the user-facing text lives in
+ * TERM_LABEL below.
+ */
 export const paymentTermsSchema = z.enum(["due_on_receipt", "net_7", "net_15", "net_30", "net_60"]);
 export type PaymentTerms = z.infer<typeof paymentTermsSchema>;
+
+/** Terms in display order, for select inputs. */
+export const PAYMENT_TERMS: PaymentTerms[] = [
+  "due_on_receipt",
+  "net_7",
+  "net_15",
+  "net_30",
+  "net_60",
+];
 
 /** Number of days each term adds to the issue date. */
 export const TERM_DAYS: Record<PaymentTerms, number> = {
@@ -24,6 +37,15 @@ export const TERM_DAYS: Record<PaymentTerms, number> = {
   net_15: 15,
   net_30: 30,
   net_60: 60,
+};
+
+/** Human-facing label for each term (single source of truth for all UI + PDF). */
+export const TERM_LABEL: Record<PaymentTerms, string> = {
+  due_on_receipt: "Due on Receipt",
+  net_7: "7 Days",
+  net_15: "15 Days",
+  net_30: "30 Days",
+  net_60: "60 Days",
 };
 
 export const invoiceStatusSchema = z.enum(["draft", "sent", "paid", "overdue"]);

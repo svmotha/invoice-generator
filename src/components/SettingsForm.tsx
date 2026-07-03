@@ -4,19 +4,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { settingsSchema, type Settings, type PaymentTerms } from "@/lib/schema";
+import { PAYMENT_TERMS, TERM_LABEL, settingsSchema, type Settings } from "@/lib/schema";
 import { TextField } from "@/components/ui/TextField";
 
 /** Form-input shape: fields with schema defaults are optional before parsing. */
 type SettingsFormValues = z.input<typeof settingsSchema>;
-
-const TERMS_OPTIONS: { value: PaymentTerms; label: string }[] = [
-  { value: "due_on_receipt", label: "Due on receipt" },
-  { value: "net_7", label: "Net 7" },
-  { value: "net_15", label: "Net 15" },
-  { value: "net_30", label: "Net 30" },
-  { value: "net_60", label: "Net 60" },
-];
 
 const selectClass =
   "mt-1 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm " +
@@ -113,9 +105,9 @@ export function SettingsForm({ initial }: { initial: Settings }) {
               Default payment terms
             </span>
             <select className={selectClass} {...register("defaultTerms")}>
-              {TERMS_OPTIONS.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
+              {PAYMENT_TERMS.map((value) => (
+                <option key={value} value={value}>
+                  {TERM_LABEL[value]}
                 </option>
               ))}
             </select>

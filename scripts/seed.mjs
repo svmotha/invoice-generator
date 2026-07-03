@@ -78,7 +78,7 @@ const clients = [globex, initech];
 // The business profile is snapshotted onto each invoice's "from" party.
 const from = { ...settings.business };
 
-// INV-0001: sent 40 days ago on Net 30 terms -> now overdue (derived).
+// INV-0001: sent 40 days ago on 30-day terms -> now overdue (derived).
 const issue1 = addDays(today, -40);
 const invoice1 = {
   id: randomUUID(),

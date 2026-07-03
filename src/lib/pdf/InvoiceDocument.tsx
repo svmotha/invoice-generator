@@ -5,7 +5,7 @@ import {
   Text,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { Invoice, Party } from "@/lib/schema";
+import { TERM_LABEL, type Invoice, type Party } from "@/lib/schema";
 import { computeTotals, formatMoney, lineTotalCents } from "@/lib/money";
 
 /**
@@ -13,14 +13,6 @@ import { computeTotals, formatMoney, lineTotalCents } from "@/lib/money";
  * buffer on the server (download route) and can drive a client-side preview.
  * react-pdf uses its own primitives + StyleSheet — no HTML/Tailwind here.
  */
-
-const TERMS_LABEL: Record<Invoice["terms"], string> = {
-  due_on_receipt: "Due on receipt",
-  net_7: "Net 7",
-  net_15: "Net 15",
-  net_30: "Net 30",
-  net_60: "Net 60",
-};
 
 const styles = StyleSheet.create({
   page: {
@@ -127,7 +119,7 @@ export function InvoiceDocument({ invoice }: { invoice: Invoice }) {
             <Text style={styles.bold}>{invoice.number}</Text>
             <Text style={styles.muted}>Issued: {invoice.issueDate}</Text>
             <Text style={styles.muted}>Due: {invoice.dueDate}</Text>
-            <Text style={styles.muted}>{TERMS_LABEL[invoice.terms]}</Text>
+            <Text style={styles.muted}>Term: {TERM_LABEL[invoice.terms]}</Text>
           </View>
         </View>
 

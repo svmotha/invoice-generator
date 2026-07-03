@@ -13,21 +13,14 @@ import {
 } from "@/lib/invoiceForm";
 import {
   dueDateFromTerms,
+  PAYMENT_TERMS,
+  TERM_LABEL,
   type Client,
   type InvoiceStatus,
   type Party,
-  type PaymentTerms,
 } from "@/lib/schema";
 import { computeTotals, formatMoney, toCents } from "@/lib/money";
 import { TextField } from "@/components/ui/TextField";
-
-const TERMS_OPTIONS: { value: PaymentTerms; label: string }[] = [
-  { value: "due_on_receipt", label: "Due on receipt" },
-  { value: "net_7", label: "Net 7" },
-  { value: "net_15", label: "Net 15" },
-  { value: "net_30", label: "Net 30" },
-  { value: "net_60", label: "Net 60" },
-];
 
 const inputClass =
   "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm " +
@@ -183,8 +176,8 @@ export function InvoiceForm({
           <label className="block">
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Terms</span>
             <select className={`mt-1 ${inputClass}`} {...register("terms")}>
-              {TERMS_OPTIONS.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {PAYMENT_TERMS.map((value) => (
+                <option key={value} value={value}>{TERM_LABEL[value]}</option>
               ))}
             </select>
           </label>
