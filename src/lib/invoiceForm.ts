@@ -5,6 +5,7 @@ import {
   currencyCodeSchema,
   type InvoiceInput,
   type Party,
+  type PaymentDetails,
 } from "./schema";
 import { toCents, fromCents } from "./money";
 
@@ -51,13 +52,15 @@ export function emptyItem(): BuilderItem {
 export function toInvoiceInput(
   values: BuilderValues,
   from: Party,
-  status: InvoiceInput["status"] = "draft"
+  status: InvoiceInput["status"] = "draft",
+  paymentDetails?: PaymentDetails
 ): InvoiceInput {
   return {
     status,
     currency: values.currency,
     from,
     to: values.to,
+    paymentDetails,
     issueDate: values.issueDate,
     dueDate: values.dueDate,
     terms: values.terms,

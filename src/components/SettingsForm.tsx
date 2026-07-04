@@ -162,15 +162,37 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         </div>
         <label className="mt-4 block">
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Default notes / payment instructions
+            Default notes
           </span>
           <textarea
             rows={3}
             className={selectClass}
-            placeholder="e.g. Bank transfer to … · Thank you for your business!"
+            placeholder="e.g. Thank you for your business!"
             {...register("defaultNotes")}
           />
         </label>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold">Payment details</h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Where clients pay you. These appear in a dedicated section on new invoices, so
+          you no longer need to type them into the notes. The account holder (your business
+          name) and reference (the invoice number) are added automatically.
+        </p>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextField label="Bank" placeholder="e.g. FNB" {...register("paymentDetails.bank")} />
+          <TextField
+            label="Account type"
+            placeholder="e.g. Cheque / Current"
+            {...register("paymentDetails.accountType")}
+          />
+          <TextField
+            label="Account number"
+            {...register("paymentDetails.accountNumber")}
+          />
+          <TextField label="Branch code" {...register("paymentDetails.branchCode")} />
+        </div>
       </section>
 
       <div className="flex items-center gap-4">

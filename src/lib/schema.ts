@@ -80,6 +80,25 @@ export const lineItemSchema = z.object({
 });
 export type LineItem = z.infer<typeof lineItemSchema>;
 
+/**
+ * Banking details the invoice sender is paid into. Stored once in settings and
+ * snapshotted onto each new invoice. The account holder (the business name) and
+ * the payment reference (the invoice number) are derived at render time, so
+ * they are not stored here.
+ */
+export const paymentDetailsSchema = z.object({
+  bank: z.string().optional().default(""),
+  accountType: z.string().optional().default(""),
+  accountNumber: z.string().optional().default(""),
+  branchCode: z.string().optional().default(""),
+});
+export type PaymentDetails = z.infer<typeof paymentDetailsSchema>;
+
+/** Whether any payment detail has been filled in (used to gate display). */
+export function hasPaymentDetails(pd?: PaymentDetails | null): boolean {
+  return Boolean(pd && (pd.bank || pd.accountNumber || pd.accountType || pd.branchCode));
+}
+
 /** The business's own profile and defaults, stored in settings.json. */
 export const settingsSchema = z.object({
   business: partySchema,
@@ -87,6 +106,13 @@ export const settingsSchema = z.object({
   logo: z.string().optional().default(""),
   defaultCurrency: currencyCodeSchema.default("ZAR"),
   defaultTerms: paymentTermsSchema.default("net_30"),
+  /** Banking details pre-filled onto new invoices' payment section. */
+  paymentDetails: paymentDetailsSchema.default({
+    bank: "",
+    accountType: "",
+    accountNumber: "",
+    branchCode: "",
+  }),
   /**
    * Whether the business is VAT-registered. A business that is not registered
    * cannot charge VAT, so new invoices default their tax to 0% when this is off.
@@ -120,6 +146,12 @@ export const invoiceSchema = z.object({
 
   from: partySchema,
   to: partySchema,
+
+  /**
+   * Banking details snapshotted from settings at creation. Optional: invoices
+   * created before this feature won't have it and are intentionally left as-is.
+   */
+  paymentDetails: paymentDetailsSchema.optional(),
 
   issueDate: z.string(), // ISO date (YYYY-MM-DD)
   dueDate: z.string(), // ISO date (YYYY-MM-DD)

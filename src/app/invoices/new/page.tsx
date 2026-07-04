@@ -42,7 +42,12 @@ export default async function NewInvoicePage() {
         </Link>
       </div>
       <div className="mt-8">
-        <InvoiceForm from={businessFromSettings(settings)} defaults={defaults} clients={clients} />
+        <InvoiceForm
+          from={businessFromSettings(settings)}
+          paymentDetails={settings.paymentDetails}
+          defaults={defaults}
+          clients={clients}
+        />
       </div>
     </div>
   );

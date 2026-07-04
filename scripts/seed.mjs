@@ -37,10 +37,15 @@ const settings = {
   logo: "",
   defaultCurrency: "ZAR",
   defaultTerms: "net_30",
+  paymentDetails: {
+    bank: "FNB",
+    accountType: "Cheque",
+    accountNumber: "62012345678",
+    branchCode: "250655",
+  },
   vatRegistered: true,
   defaultTaxPercent: 15,
-  defaultNotes:
-    "Payment by EFT to Acme Studio, FNB Cheque Acc 620XXXXXXXX, Branch 250655. Use the invoice number as reference.",
+  defaultNotes: "Thank you for your business!",
   nextInvoiceSeq: 3,
   invoicePrefix: "INV-",
 };
@@ -87,6 +92,7 @@ const invoice1 = {
   currency: "ZAR",
   from,
   to: { ...globex },
+  paymentDetails: { ...settings.paymentDetails },
   issueDate: iso(issue1),
   dueDate: iso(addDays(issue1, 30)),
   terms: "net_30",
@@ -109,6 +115,7 @@ const invoice2 = {
   currency: "ZAR",
   from,
   to: { ...initech },
+  paymentDetails: { ...settings.paymentDetails },
   issueDate: iso(today),
   dueDate: iso(addDays(today, 15)),
   terms: "net_15",
