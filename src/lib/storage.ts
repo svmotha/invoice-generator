@@ -72,6 +72,7 @@ function defaultSettings(): Settings {
     logo: "",
     defaultCurrency: "ZAR",
     defaultTerms: "net_30",
+    paymentDetails: { bank: "", accountType: "", accountNumber: "", branchCode: "" },
     vatRegistered: true,
     defaultTaxPercent: 15,
     defaultNotes: "",

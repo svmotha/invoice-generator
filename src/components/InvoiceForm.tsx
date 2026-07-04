@@ -18,6 +18,7 @@ import {
   type Client,
   type InvoiceStatus,
   type Party,
+  type PaymentDetails,
 } from "@/lib/schema";
 import { computeTotals, formatMoney, toCents } from "@/lib/money";
 import { TextField } from "@/components/ui/TextField";
@@ -33,6 +34,8 @@ export interface InvoiceFormProps {
   /** Business "from" party, snapshotted onto the invoice at save time. */
   from: Party;
   defaults: BuilderValues;
+  /** Banking details snapshotted onto the invoice at save time. */
+  paymentDetails?: PaymentDetails;
   /** Saved clients offered in the "Bill to" picker. */
   clients?: Client[];
   /** When set, the form edits this invoice (PUT) instead of creating one. */
@@ -44,6 +47,7 @@ export interface InvoiceFormProps {
 export function InvoiceForm({
   from,
   defaults,
+  paymentDetails,
   clients = [],
   invoiceId,
   status = "draft",
@@ -105,7 +109,7 @@ export function InvoiceForm({
       const res = await fetch(isEdit ? `/api/invoices/${invoiceId}` : "/api/invoices", {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toInvoiceInput(values, from, status)),
+        body: JSON.stringify(toInvoiceInput(values, from, status, paymentDetails)),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

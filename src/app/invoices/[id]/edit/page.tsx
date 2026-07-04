@@ -42,10 +42,11 @@ export default async function EditInvoicePage({ params }: Params) {
         </Link>
       </div>
       <div className="mt-8">
-        {/* Refresh the supplier "from" from current settings so edits pick up
-            the latest business address, email, VAT number, etc. */}
+        {/* Refresh the supplier "from" and payment details from current
+            settings so edits pick up the latest business + banking info. */}
         <InvoiceForm
           from={businessFromSettings(settings)}
+          paymentDetails={settings.paymentDetails}
           defaults={defaults}
           clients={clients}
           invoiceId={invoice.id}

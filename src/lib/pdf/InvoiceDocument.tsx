@@ -5,7 +5,7 @@ import {
   Text,
   StyleSheet,
 } from "@react-pdf/renderer";
-import { TERM_LABEL, type Invoice, type Party } from "@/lib/schema";
+import { TERM_LABEL, hasPaymentDetails, type Invoice, type Party } from "@/lib/schema";
 import { computeTotals, formatMoney, lineTotalCents } from "@/lib/money";
 
 /**
@@ -76,7 +76,10 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   grandText: { fontSize: 13, fontFamily: "Helvetica-Bold" },
-  notes: { marginTop: 28, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#e5e7eb" },
+  payment: { marginTop: 28, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#e5e7eb" },
+  payRow: { flexDirection: "row", marginTop: 2 },
+  payLabel: { width: 110, color: "#6b7280" },
+  notes: { marginTop: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#e5e7eb" },
 });
 
 function addressLines(p: Party): string[] {
@@ -178,6 +181,27 @@ export function InvoiceDocument({ invoice }: { invoice: Invoice }) {
           </View>
         </View>
 
+        {/* Payment details */}
+        {hasPaymentDetails(invoice.paymentDetails) ? (
+          <View style={styles.payment}>
+            <Text style={styles.sectionLabel}>Payment Details</Text>
+            <PayRow label="Account Holder" value={from.name} />
+            {invoice.paymentDetails?.bank ? (
+              <PayRow label="Bank" value={invoice.paymentDetails.bank} />
+            ) : null}
+            {invoice.paymentDetails?.accountType ? (
+              <PayRow label="Account Type" value={invoice.paymentDetails.accountType} />
+            ) : null}
+            {invoice.paymentDetails?.accountNumber ? (
+              <PayRow label="Account Number" value={invoice.paymentDetails.accountNumber} />
+            ) : null}
+            {invoice.paymentDetails?.branchCode ? (
+              <PayRow label="Branch Code" value={invoice.paymentDetails.branchCode} />
+            ) : null}
+            <PayRow label="Reference" value={invoice.number} />
+          </View>
+        ) : null}
+
         {/* Notes */}
         {invoice.notes ? (
           <View style={styles.notes}>
@@ -187,5 +211,14 @@ export function InvoiceDocument({ invoice }: { invoice: Invoice }) {
         ) : null}
       </Page>
     </Document>
+  );
+}
+
+function PayRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.payRow}>
+      <Text style={styles.payLabel}>{label}</Text>
+      <Text>{value}</Text>
+    </View>
   );
 }
